@@ -94,6 +94,10 @@ struct bpf_map_ops {
 	__poll_t (*map_poll)(struct bpf_map *map, struct file *filp,
 			     struct poll_table_struct *pts);
 
+	/* BTF name and id of struct allocated by map_alloc */
+	const char * const map_btf_name;
+	int *map_btf_id;
+
 	ANDROID_KABI_RESERVE(1);
 	ANDROID_KABI_RESERVE(2);
 };
@@ -1115,6 +1119,11 @@ struct bpf_map *bpf_map_get_curr_or_next(u32 *id);
 extern int sysctl_unprivileged_bpf_disabled;
 
 static inline bool bpf_allow_ptr_leaks(void)
+{
+	return perfmon_capable();
+}
+
+static inline bool bpf_allow_ptr_to_map_access(void)
 {
 	return perfmon_capable();
 }
