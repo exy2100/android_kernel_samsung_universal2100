@@ -37,6 +37,7 @@
 #include <asm/pointer_auth.h>
 #include <asm/ptrace.h>
 #include <asm/types.h>
+#include <linux/android_vendor.h>
 
 /*
  * TASK_SIZE - the maximum size of a user space task.
@@ -137,6 +138,8 @@ struct thread_struct {
 		unsigned long	tp2_value;
 		struct user_fpsimd_state fpsimd_state;
 	} uw;
+
+	ANDROID_VENDOR_DATA(1);
 
 	unsigned int		fpsimd_cpu;
 	void			*sve_state;	/* SVE registers, if any */
