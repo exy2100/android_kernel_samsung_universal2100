@@ -1,0 +1,27 @@
+config SEC_O1S_PROJECT
+	depends on ARCH_EXYNOS
+	default n
+	bool "Samsung O1S Project"
+	help
+	  Support for Samsung O1S Project
+
+config SEC_T2S_PROJECT
+	depends on ARCH_EXYNOS
+	default n
+	bool "Samsung T2S Project"
+	help
+	  Support for Samsung T2S Project
+
+config SEC_P3S_PROJECT
+	depends on ARCH_EXYNOS
+	default n
+	bool "Samsung P3S Project"
+	help
+	  Support for Samsung P3S Project
+
+config SEC_R9S_PROJECT
+	depends on ARCH_EXYNOS
+	default n
+	bool "Samsung R9S Project"
+	help
+	  Support for Samsung R9S Project
