@@ -70,7 +70,7 @@
 	};
 };
 
-/* /home/dpi/qb5_8814/workspace/P4_1716/android/kernel/kmodule/battery/wireless/mfc_charger_gki/mfc_charger.t2s.dtsi */
+/* /home/dpi/qb5_8814/workspace/P4_1716/android/kernel/kmodule/battery/wireless/mfc_charger_gki/mfc_charger.p3s.dtsi */
 &hsi2c_3 {
 	samsung,stop-after-trans;
 	samsung,stand-mode;
@@ -83,8 +83,8 @@
 
 	fod_list {
 		pad_0x00 { /* DEFAULT */
-			cc = <150 64 142 53 150 38 150 31 155 17 156 16>;
-			cv = <150 127 142 127 150 118 150 111 155 97 156 96>;
+			cc = <150 61 142 50 150 28 150 25 155 7 156 4>;
+			cv = <150 127 142 127 150 108 150 105 155 87 156 84>;
 		};
 	};
 };
