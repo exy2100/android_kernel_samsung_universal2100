@@ -3431,6 +3431,8 @@
 		sysreg_g3d = <0x18420000>;
 		interrupts = <0x00 0x153 0x04 0x00 0x154 0x04 0x00 0x152 0x04>;
 		interrupt-names = "JOB\0MMU\0GPU";
+		clock-names = "gpu_clock";
+		clocks = <0x0d 0x3b6>;
 		g3d_cmu_cal_id = <0xb04000b>;
 		system-coherency = <0x00>;
 		power-domains = <0x42>;
