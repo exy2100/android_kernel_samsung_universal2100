@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: GPL-2.0
+	# SPDX-License-Identifier: GPL-2.0
 VERSION = 5
 PATCHLEVEL = 4
 SUBLEVEL = 300
@@ -560,9 +560,14 @@ ifdef building_out_of_srctree
 	{ echo "# this is build directory, ignore it"; echo "*"; } > .gitignore
 endif
 
+# Exynos platform exports
 PLATFORM_VERSION ?= 11
 ANDROID_MAJOR_VERSION = r
+ifndef CONFIG_SEC_R9S_PROJECT
+SEC_BUILD_CONF_VENDOR_BUILD_OS = 15
+else
 SEC_BUILD_CONF_VENDOR_BUILD_OS = 13
+endif
 @echo "PLATFORM_VERSION: $(PLATFORM_VERSION)"
 @echo "ANDROID_MAJOR_VERSION: $(ANDROID_MAJOR_VERSION)"
 @echo "SEC_BUILD_CONF_VENDOR_BUILD_OS: $(SEC_BUILD_CONF_VENDOR_BUILD_OS)"
