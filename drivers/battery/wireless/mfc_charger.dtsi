@@ -70,21 +70,17 @@
 	};
 };
 
-/* /home/dpi/qb5_8814/workspace/P4_1716/android/kernel/kmodule/battery/wireless/mfc_charger_gki/mfc_charger.p3s.dtsi */
-&hsi2c_3 {
-	samsung,stop-after-trans;
-	samsung,stand-mode;
-};
-
+/* /home/dpi/qb5_8814/workspace/P4_1716/android/kernel/kmodule/battery/wireless/mfc_charger_gki/mfc_charger.r9s.dtsi */
 &mfc_charger {
-	battery,wireless20_vout_list = <WIRELESS_VOUT_9V WIRELESS_VOUT_11V WIRELESS_VOUT_11V>;
+	battery,wireless20_vout_list = <WIRELESS_VOUT_10V WIRELESS_VOUT_11V WIRELESS_VOUT_11V>;
 	battery,tx_gear_min_op_freq_delay = <4000>;
-	battery,wpc_vout_ctrl_full = <WIRELESS_VOUT_5V_STEP>;
+	battery,wpc_vout_ctrl_full = <WIRELESS_VOUT_4_5V_STEP>;
+	battery,wpc_headroom_ctrl_full;
 
 	fod_list {
 		pad_0x00 { /* DEFAULT */
-			cc = <150 61 142 50 150 28 150 25 155 7 156 4>;
-			cv = <150 127 142 127 150 108 150 105 155 87 156 84>;
+			cc = <150 62 142 51 150 37 150 27 155 15 156 13>;
+			cv = <150 92 142 81 150 67 150 57 155 45 156 43>;
 		};
 	};
 };
