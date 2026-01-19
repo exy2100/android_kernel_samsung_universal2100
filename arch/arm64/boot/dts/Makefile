@@ -25,6 +25,9 @@ dtbo-y += samsung/p3s/p3s_eur_openx_w01_r18.dtbo
 dtbo-y += samsung/p3s/p3s_eur_openx_w01_r19.dtbo
 dtbo-y += samsung/p3s/p3s_eur_openx_w01_r22.dtbo
 dtbo-y += samsung/p3s/p3s_eur_openx_w01_r20.dtbo
+dtbo-y += samsung/r9s/r9s_eur_openx_w01_r18.dtbo
+dtbo-y += samsung/r9s/r9s_eur_openx_w01_r17.dtbo
+dtbo-y += samsung/r9s/r9s_eur_openx_w01_r00.dtbo
 
 # Platform
 dtbo-y += exynos/vendor/exynos2100-smdk2100.dtbo
