@@ -1197,9 +1197,6 @@ static int ext4_block_write_begin(struct page *page, loff_t pos, unsigned len,
 	struct buffer_head *bh, *head, *wait[2];
 	int nr_wait = 0;
 	int i;
-#ifdef CONFIG_DDAR
-	bool dd_decrypt = false;
-#endif
 
 	BUG_ON(!PageLocked(page));
 	BUG_ON(from > PAGE_SIZE);
@@ -1252,10 +1249,6 @@ static int ext4_block_write_begin(struct page *page, loff_t pos, unsigned len,
 		    (block_start < from || block_end > to)) {
 			ll_rw_block(REQ_OP_READ, 0, 1, &bh);
 			wait[nr_wait++] = bh;
-
-#ifdef CONFIG_DDAR
-			dd_decrypt = fscrypt_dd_encrypted_inode(inode);
-#endif
 		}
 	}
 	/*
@@ -1280,11 +1273,6 @@ static int ext4_block_write_begin(struct page *page, loff_t pos, unsigned len,
 			}
 		}
 	}
-
-#ifdef CONFIG_DDAR
-	if (dd_decrypt)
-		err = fscrypt_dd_decrypt_page(inode, page);
-#endif
 
 	return err;
 }
@@ -2266,10 +2254,7 @@ static int ext4_writepage(struct page *page,
 		return -ENOMEM;
 	}
 	ret = ext4_bio_write_page(&io_submit, page, len, wbc, keep_towrite);
-// CONFIG_DDAR [
-	if (ext4_io_submit_to_dd(inode, &io_submit) == -EOPNOTSUPP)
-		ext4_io_submit(&io_submit);
-// ] CONFIG_DDAR
+	ext4_io_submit(&io_submit);
 	/* Drop io_end reference we got from init */
 	ext4_put_io_end_defer(io_submit.io_end);
 	return ret;
@@ -2922,10 +2907,7 @@ retry:
 	/* Unlock pages we didn't use */
 	mpage_release_unused_pages(&mpd, false);
 	/* Submit prepared bio */
-// CONFIG_DDAR [
-	if (ext4_io_submit_to_dd(inode, &mpd.io_submit) == -EOPNOTSUPP)
-		ext4_io_submit(&mpd.io_submit);
-// ] CONFIG_DDAR
+	ext4_io_submit(&mpd.io_submit);
 	ext4_put_io_end_defer(mpd.io_submit.io_end);
 	mpd.io_submit.io_end = NULL;
 	if (ret < 0)
@@ -2998,10 +2980,7 @@ retry:
 		/* Unlock pages we didn't use */
 		mpage_release_unused_pages(&mpd, give_up_on_write);
 		/* Submit prepared bio */
-// CONFIG_DDAR [
-		if (ext4_io_submit_to_dd(inode, &mpd.io_submit) == -EOPNOTSUPP)
-			ext4_io_submit(&mpd.io_submit);
-// ] CONFIG_DDAR
+		ext4_io_submit(&mpd.io_submit);
 
 		/*
 		 * Drop our io_end reference we got from init. We have
@@ -4202,10 +4181,6 @@ static int __ext4_block_zero_page_range(handle_t *handle,
 			BUG_ON(!fscrypt_has_encryption_key(inode));
 			WARN_ON_ONCE(fscrypt_decrypt_pagecache_blocks(
 					page, blocksize, bh_offset(bh)));
-#ifdef CONFIG_DDAR
-			if (fscrypt_dd_encrypted_inode(inode))
-				WARN_ON_ONCE(fscrypt_dd_decrypt_page(page->mapping->host, page));
-#endif
 		}
 	}
 	if (ext4_should_journal_data(inode)) {
