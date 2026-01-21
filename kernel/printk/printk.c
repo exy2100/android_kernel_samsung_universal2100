@@ -1433,7 +1433,6 @@ static size_t print_prefix(const struct printk_log *msg, bool syslog,
 	if (time)
 		len += print_time(msg->ts_nsec, buf + len);
 
-	len += print_process(msg, buf ? buf + len : NULL);
 	len += print_caller(msg->caller_id, buf + len);
 
 	if (IS_ENABLED(CONFIG_PRINTK_CALLER) || time) {

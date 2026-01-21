@@ -94,6 +94,8 @@
 #include <linux/sched/debug.h>
 #include <linux/sched/stat.h>
 #include <linux/posix-timers.h>
+#include <linux/task_integrity.h>
+#include <linux/proca.h>
 #include <linux/cpufreq_times.h>
 #include <linux/cn_proc.h>
 #include <trace/events/oom.h>
