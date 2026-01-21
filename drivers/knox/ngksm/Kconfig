@@ -15,7 +15,7 @@ config NGKSM
 	bool "Next Generation Knox Security Monitor feature enable"
 	depends on !SEC_FACTORY
 	depends on !ARCH_QTI_VM
-	default y
+	default n
 	help
 	This enables knox securty monitor driver
 

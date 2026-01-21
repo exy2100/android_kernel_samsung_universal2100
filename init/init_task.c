@@ -12,7 +12,6 @@
 #include <linux/audit.h>
 #include <linux/numa.h>
 #include <linux/scs.h>
-#include <linux/task_integrity.h>
 
 #include <asm/pgtable.h>
 #include <linux/uaccess.h>
@@ -184,7 +183,6 @@ struct task_struct init_task
 #ifdef CONFIG_SECURITY
 	.security	= NULL,
 #endif
-	INIT_INTEGRITY(init_task)
 };
 EXPORT_SYMBOL(init_task);
 
