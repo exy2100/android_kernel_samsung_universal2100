@@ -116,6 +116,10 @@ static __init int kernel_exit_sysfs_init(void)
 late_initcall(kernel_exit_sysfs_init);
 #endif
 
+#ifdef CONFIG_SECURITY_DEFEX
+#include <linux/defex.h>
+#endif
+
 #if defined(CONFIG_MEMORY_ZEROISATION)
 #include <linux/mz.h> /* for Memory zeroisation */
 #endif
@@ -772,6 +776,10 @@ void __noreturn do_exit(long code)
 {
 	struct task_struct *tsk = current;
 	int group_dead;
+
+#ifdef CONFIG_SECURITY_DEFEX
+	task_defex_zero_creds(current);
+#endif
 
 	/*
 	 * We can get here from a kernel oops, sometimes with preemption off.
