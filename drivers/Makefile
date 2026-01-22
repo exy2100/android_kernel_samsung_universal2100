@@ -202,6 +202,7 @@ obj-y				+= samsung/
 
 #Sensor
 obj-$(CONFIG_SENSORS)		+= sensors/
+obj-$(CONFIG_SENSORS_LEGO) += sensors_lego/
 
 # SPU signature verify
 obj-$(CONFIG_SPU_VERIFY) += spu_verify/
@@ -242,4 +243,3 @@ obj-y += usb/typec/maxim/ # ADDED BY LEGO AUTOMATICALLY: DO NOT SUBMIT
 obj-y += input/wacom/ # ADDED BY LEGO AUTOMATICALLY: DO NOT SUBMIT
 obj-y += input/sec_input/synaptics/ # ADDED BY LEGO AUTOMATICALLY: DO NOT SUBMIT
 obj-y += battery/common/ # ADDED BY LEGO AUTOMATICALLY: DO NOT SUBMIT
-obj-y += sensors_lego/ # ADDED BY LEGO AUTOMATICALLY: DO NOT SUBMIT
