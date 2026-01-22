@@ -50,7 +50,6 @@ static void kexec_image_info(const struct kimage *kimage)
 	}
 }
 
-#ifdef CONFIG_UHI_BOOT
 
 static int uhi_machine_kexec_prepare(struct kimage *kimage)
 {
@@ -84,11 +83,9 @@ static int uhi_machine_kexec_prepare(struct kimage *kimage)
 
 int (*_machine_kexec_prepare)(struct kimage *) = uhi_machine_kexec_prepare;
 
-#else
 
 int (*_machine_kexec_prepare)(struct kimage *) = NULL;
 
-#endif /* CONFIG_UHI_BOOT */
 
 int
 machine_kexec_prepare(struct kimage *kimage)
