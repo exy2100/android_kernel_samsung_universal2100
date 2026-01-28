@@ -430,6 +430,17 @@ static void __init hyp_mode_check(void)
 		pr_info("CPU: All CPU(s) started at EL1\n");
 }
 
+static void __iomem *cpu_pipi_base;
+
+#define CPU_PIPI_BASE		(0xBFFFF540)
+#define CPU_PIPI_OFFSET(i)	(i * 0x4)
+
+static void record_cpu_pipi(int cpu, bool pending)
+{
+	if (cpu_pipi_base)
+		writel_relaxed(pending, cpu_pipi_base + CPU_PIPI_OFFSET(cpu));
+}
+
 void __init smp_cpus_done(unsigned int max_cpus)
 {
 	pr_info("SMP: Total of %d processors activated.\n", num_online_cpus());
@@ -437,6 +448,8 @@ void __init smp_cpus_done(unsigned int max_cpus)
 	hyp_mode_check();
 	apply_alternatives_all();
 	mark_linear_text_alias_ro();
+
+	cpu_pipi_base = ioremap(CPU_PIPI_BASE, SZ_4K);
 }
 
 void __init smp_prepare_boot_cpu(void)
@@ -929,6 +942,8 @@ static void do_handle_IPI(int ipinr)
 		pr_crit("CPU%u: Unknown IPI message 0x%x\n", cpu, ipinr);
 		break;
 	}
+
+	record_cpu_pipi(cpu, false);
 
 	if ((unsigned)ipinr < NR_IPI)
 		trace_ipi_exit_rcuidle(ipi_types[ipinr]);

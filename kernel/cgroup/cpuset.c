@@ -164,6 +164,12 @@ struct cpuset {
 	int child_ecpus_count;
 };
 
+#define CS_CGROUP_COUNT	20
+static struct cpuset requested_cs[CS_CGROUP_COUNT];
+static int cs_count;
+
+#define req_cs(cs)	(requested_cs[cs->css.id - 1])
+
 /*
  * Partition root states:
  *
@@ -2740,6 +2746,11 @@ cpuset_css_alloc(struct cgroup_subsys_state *parent_css)
 {
 	struct cpuset *cs;
 
+	if (++cs_count > CS_CGROUP_COUNT) {
+		pr_err("%s: too many cpuset groups(%d)\n", __func__, cs_count);
+		return ERR_PTR(-ENOMEM);
+	}
+
 	if (!parent_css)
 		return &top_cpuset.css;
 
@@ -2822,6 +2833,7 @@ static int cpuset_css_online(struct cgroup_subsys_state *css)
 	cpumask_copy(cs->cpus_allowed, parent->cpus_allowed);
 	cpumask_copy(cs->cpus_requested, parent->cpus_requested);
 	cpumask_copy(cs->effective_cpus, parent->cpus_allowed);
+	cpumask_copy(req_cs(cs).cpus_allowed, parent->cpus_allowed);
 	spin_unlock_irq(&callback_lock);
 out_unlock:
 	percpu_up_write(&cpuset_rwsem);
@@ -2932,6 +2944,13 @@ struct cgroup_subsys cpuset_cgrp_subsys = {
 
 int __init cpuset_init(void)
 {
+	int i;
+
+	for (i = 0; i < CS_CGROUP_COUNT; i++) {
+		BUG_ON(!alloc_cpumask_var(&requested_cs[i].cpus_allowed, GFP_KERNEL));
+		cpumask_setall(requested_cs[i].cpus_allowed);
+	}
+
 	BUG_ON(percpu_init_rwsem(&cpuset_rwsem));
 
 	BUG_ON(!alloc_cpumask_var(&top_cpuset.cpus_allowed, GFP_KERNEL));

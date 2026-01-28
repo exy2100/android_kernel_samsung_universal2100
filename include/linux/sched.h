@@ -31,6 +31,7 @@
 #include <linux/task_io_accounting.h>
 #include <linux/posix-timers.h>
 #include <linux/rseq.h>
+#include <linux/sec_debug_types.h>
 #include <linux/android_kabi.h>
 #include <linux/android_vendor.h>
 
