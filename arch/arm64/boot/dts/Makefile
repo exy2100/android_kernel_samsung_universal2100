@@ -1,30 +1,26 @@
 # SPDX-License-Identifier: GPL-2.0
-subdir-y += actions
-subdir-y += al
-subdir-y += allwinner
-subdir-y += altera
-subdir-y += amd
-subdir-y += amlogic
-subdir-y += apm
-subdir-y += arm
-subdir-y += bitmain
-subdir-y += broadcom
-subdir-y += cavium
-subdir-y += exynos
-subdir-y += freescale
-subdir-y += hisilicon
-subdir-y += intel
-subdir-y += lg
-subdir-y += marvell
-subdir-y += mediatek
-subdir-y += nvidia
-subdir-y += qcom
-subdir-y += realtek
-subdir-y += renesas
-subdir-y += rockchip
-subdir-y += socionext
-subdir-y += sprd
-subdir-y += synaptics
-subdir-y += ti
-subdir-y += xilinx
-subdir-y += zte
+
+# Projects
+dtbo-y += samsung/o1s/o1s_eur_openx_w01_r02.dtbo
+dtbo-y += samsung/o1s/o1s_eur_openx_w01_r16.dtbo
+dtbo-y += samsung/o1s/o1s_eur_openx_w01_r22.dtbo
+dtbo-y += samsung/o1s/o1s_eur_openx_w01_r18.dtbo
+dtbo-y += samsung/o1s/o1s_eur_openx_w01_r19.dtbo
+dtbo-y += samsung/o1s/o1s_eur_openx_w01_r21.dtbo
+dtbo-y += samsung/o1s/o1s_eur_openx_w01_r20.dtbo
+dtbo-y += samsung/o1s/o1s_eur_openx_w01_r17.dtbo
+
+# Platform
+dtbo-y += exynos/vendor/exynos2100-smdk2100.dtbo
+dtbo-y += exynos/vendor/exynos2100-universal2100_rev10.dtbo
+dtbo-y += exynos/vendor/exynos2100-universal2100_rev02.dtbo
+dtb-y += exynos/vendor/exynos2100.dtb
+dtbo-y += exynos/vendor/exynos2100-universal2100_rev11.dtbo
+
+targets += dtbs
+DTB_LIST  := $(dtb-y) $(dtbo-y)
+always    := $(DTB_LIST)
+
+dtbs: $(addprefix $(obj)/, $(DTB_LIST))
+
+clean-files := *.dtb*
