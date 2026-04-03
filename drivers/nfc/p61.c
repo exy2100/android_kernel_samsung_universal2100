@@ -43,6 +43,7 @@
 #include <linux/spi/spidev.h>
 #include <linux/of_gpio.h>
 #include <linux/of_platform.h>
+#include <linux/compat.h>
 
 #include "nfc_wakelock.h"
 #include "p61.h"

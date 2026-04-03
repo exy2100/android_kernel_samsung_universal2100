@@ -14,6 +14,7 @@
 #define pr_fmt(fmt) "IONFD2PHYS: " fmt
 /* #define DEBUG */
 
+#include <linux/compat.h>
 #include <linux/uaccess.h>
 #include <linux/device.h>
 #include <linux/dma-buf.h>

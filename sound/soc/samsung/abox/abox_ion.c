@@ -13,6 +13,7 @@
 
 #include <linux/ion.h>
 #include <linux/dma-buf.h>
+#include <linux/compat.h>
 
 #include "abox.h"
 #include "abox_ion.h"
@@ -89,7 +90,7 @@ static int abox_ion_hwdep_ioctl(struct snd_hwdep *hw, struct file *file,
 static int abox_ion_hwdep_ioctl_compat(struct snd_hwdep *hw, struct file *file,
 		unsigned int cmd, unsigned long arg)
 {
-	return abox_ion_hwdep_ioctl_common(hw, file, cmd, compat_ptr(arg));
+	return abox_ion_hwdep_ioctl_common(hw, file, cmd, (unsigned long __user *)compat_ptr(arg));
 }
 
 int abox_ion_new_hwdep(struct snd_soc_pcm_runtime *runtime,

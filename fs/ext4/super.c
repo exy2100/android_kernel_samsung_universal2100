@@ -492,7 +492,8 @@ static void ext4_handle_error(struct super_block *sb)
 			return;
 		if (ufs_debug_func)
 			ufs_debug_func(NULL);
-		panic("EXT4(%s:%s\n", sb->s_id, buf?buf:"no message)");
+		panic("EXT4-fs (device %s): panic forced after error\n",
+			sb->s_id);
 	}
 }
 

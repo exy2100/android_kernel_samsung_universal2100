@@ -20,6 +20,7 @@
 #include <linux/oom.h>
 #include <linux/ratelimit.h>
 #include <linux/ion.h>
+#include <linux/compat.h>
 
 #include "dma-buf-trace.h"
 

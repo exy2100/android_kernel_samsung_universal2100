@@ -54,6 +54,7 @@
 #include <linux/file.h>
 #include <linux/configfs.h>
 #include <linux/sched/signal.h>
+#include <linux/compat.h>
 #include "f_mtp.h"
 #include "configfs.h"
 

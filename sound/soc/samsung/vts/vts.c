@@ -26,6 +26,7 @@
 #include <linux/miscdevice.h>
 #include <linux/pinctrl/consumer.h>
 #include <linux/suspend.h>
+#include <linux/compat.h>
 
 #include <asm-generic/delay.h>
 

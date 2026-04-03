@@ -22,6 +22,7 @@
 #include <linux/device.h>
 #include <linux/bug.h>
 #include <asm/uaccess.h>
+#include <linux/compat.h>
 
 #include "vision-config.h"
 #include "vision-dev.h"

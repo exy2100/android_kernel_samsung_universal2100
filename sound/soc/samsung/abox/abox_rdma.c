@@ -26,6 +26,7 @@
 #include <sound/hwdep.h>
 #include <linux/miscdevice.h>
 #include <linux/dma-buf.h>
+#include <linux/compat.h>
 
 #include <sound/soc.h>
 #include <sound/pcm_params.h>
@@ -2482,7 +2483,7 @@ static int abox_rdma_fio_compat_ioctl(struct snd_hwdep *hw,
 		struct file *file,
 		unsigned int cmd, unsigned long _arg)
 {
-	return abox_rdma_fio_common_ioctl(hw, file, cmd, compat_ptr(_arg));
+	return abox_rdma_fio_common_ioctl(hw, file, cmd, (unsigned long __user *)compat_ptr(_arg));
 }
 #endif /* CONFIG_COMPAT */
 

@@ -38,6 +38,7 @@
 #include <linux/device.h>
 #include <linux/dma-buf.h>
 #include <linux/time.h>
+#include <linux/compat.h>
 
 #include <linux/iommu.h>
 #if defined(CONFIG_EXYNOS_IOVMM)
