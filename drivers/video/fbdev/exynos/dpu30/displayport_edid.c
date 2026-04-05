@@ -171,7 +171,11 @@ static int edid_check_extension_tag(u8 ext_tag)
 	}
 }
 
+#ifdef CONFIG_SEC_KUNIT
 int __mockable edid_read(u32 sst_id, struct displayport_device *displayport)
+#else
+int edid_read(u32 sst_id, struct displayport_device *displayport)
+#endif
 {
 	int block = 0;
 	int block_cnt = 0;

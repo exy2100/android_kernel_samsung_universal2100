@@ -369,7 +369,11 @@ static void dsim_wr_payload(struct dsim_device *dsim, unsigned char *buf, u32 si
 	dsim->pl_cnt += size;
 }
 
+#ifdef CONFIG_SEC_KUNIT
 int __mockable dsim_sr_write_data(struct dsim_device *dsim, const u8 *cmd, u32 size, u32 align)
+#else
+int dsim_sr_write_data(struct dsim_device *dsim, const u8 *cmd, u32 size, u32 align)
+#endif
 {
 	int cnt;
 	u8 c_start = 0, c_next = 0;
@@ -496,8 +500,13 @@ int dsim_cal_pl_sum(struct exynos_dsim_cmd set_cmd[], int cmd_cnt, struct exynos
 	return pl_sum_total;
 }
 
+#ifdef CONFIG_SEC_KUNIT
 int __mockable dsim_write_cmd_set(struct dsim_device *dsim, struct exynos_dsim_cmd cmd_list[],
 		int cmd_cnt, bool wait_vsync)
+#else
+int dsim_write_cmd_set(struct dsim_device *dsim, struct exynos_dsim_cmd cmd_list[],
+		int cmd_cnt, bool wait_vsync)
+#endif
 {
 	int i, j = 0;
 	int ret = 0;
@@ -627,7 +636,11 @@ err_exit:
 
 }
 
+#ifdef CONFIG_SEC_KUNIT
 int __mockable dsim_write_data(struct dsim_device *dsim, u32 id, unsigned long d0, u32 d1, bool wait_empty)
+#else
+int dsim_write_data(struct dsim_device *dsim, u32 id, unsigned long d0, u32 d1, bool wait_empty)
+#endif
 {
 	int ret = 0;
 	struct decon_device *decon = get_decon_drvdata(0);
@@ -744,7 +757,11 @@ err_exit:
 	return ret;
 }
 
+#ifdef CONFIG_SEC_KUNIT
 int __mockable dsim_read_data(struct dsim_device *dsim, u32 id, u32 addr, u32 cnt, u8 *buf)
+#else
+int dsim_read_data(struct dsim_device *dsim, u32 id, u32 addr, u32 cnt, u8 *buf)
+#endif
 {
 	u32 rx_fifo, rx_size = 0;
 	int i, j, ret = 0;

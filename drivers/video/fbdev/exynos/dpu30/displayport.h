@@ -54,6 +54,8 @@
 #endif
 #include <kunit/test.h>
 #include <kunit/mock.h>
+#else
+#define __visible_for_testing static
 #endif
 
 

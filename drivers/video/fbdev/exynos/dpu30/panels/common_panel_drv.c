@@ -445,7 +445,11 @@ static int __match_panel_v4l2_subdev(struct device *dev, const void *data)
 	return 0;
 }
 
+#ifdef CONFIG_SEC_KUNIT
 int __mockable exynos_panel_find_panel_drv(struct exynos_panel_device *panel)
+#else
+int exynos_panel_find_panel_drv(struct exynos_panel_device *panel)
+#endif
 {
 	struct device_driver *drv;
 	struct device *dev;
@@ -484,7 +488,11 @@ static void exynos_panel_init_panel_drv(struct exynos_panel_device *panel)
 	}
 }
 
+#ifdef CONFIG_SEC_KUNIT
 int __mockable exynos_panel_parse_dt(struct exynos_panel_device *panel)
+#else
+int exynos_panel_parse_dt(struct exynos_panel_device *panel)
+#endif
 {
 	int ret = 0;
 
