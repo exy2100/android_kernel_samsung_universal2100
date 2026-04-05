@@ -1097,6 +1097,7 @@ u32 ufshcd_get_local_unipro_ver(struct ufs_hba *hba);
 
 int ufshcd_send_uic_cmd(struct ufs_hba *hba, struct uic_command *uic_cmd);
 int ufshcd_wb_ctrl(struct ufs_hba *hba, bool enable);
+bool ufshcd_any_tag_in_use(struct ufs_hba *hba);
 
 int ufshcd_exec_raw_upiu_cmd(struct ufs_hba *hba,
 			     struct utp_upiu_req *req_upiu,

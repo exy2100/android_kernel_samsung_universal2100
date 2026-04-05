@@ -283,6 +283,7 @@ static int ufshcd_try_to_abort_task(struct ufs_hba *hba, int tag);
 static int ufshcd_wb_buf_flush_enable(struct ufs_hba *hba);
 static int ufshcd_wb_buf_flush_disable(struct ufs_hba *hba);
 int ufshcd_wb_ctrl(struct ufs_hba *hba, bool enable);
+bool ufshcd_any_tag_in_use(struct ufs_hba *hba);
 static int ufshcd_wb_toggle_flush_during_h8(struct ufs_hba *hba, bool set);
 static inline void ufshcd_wb_toggle_flush(struct ufs_hba *hba, bool enable);
 
@@ -1372,7 +1373,7 @@ static bool ufshcd_is_busy(struct request *req, void *priv, bool reserved)
 }
 
 /* Whether or not any tag is in use by a request that is in progress. */
-static bool ufshcd_any_tag_in_use(struct ufs_hba *hba)
+bool ufshcd_any_tag_in_use(struct ufs_hba *hba)
 {
 	struct request_queue *q = hba->cmd_queue;
 	int busy = 0;
@@ -1380,6 +1381,7 @@ static bool ufshcd_any_tag_in_use(struct ufs_hba *hba)
 	blk_mq_tagset_busy_iter(q->tag_set, ufshcd_is_busy, &busy);
 	return busy;
 }
+EXPORT_SYMBOL_GPL(ufshcd_any_tag_in_use);
 
 static int ufshcd_devfreq_get_dev_status(struct device *dev,
 		struct devfreq_dev_status *stat)
