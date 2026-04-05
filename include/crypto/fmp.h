@@ -13,8 +13,9 @@
 #include <linux/platform_device.h>
 #include <linux/miscdevice.h>
 #include <linux/bio.h>
+#include <crypto/fmp_fips.h>
 
-#define FMP_DRV_VERSION "3.0.0"
+#define FMP_DRV_VERSION "4.0.1"
 
 #define FMP_KEY_SIZE_16		16
 #define FMP_KEY_SIZE_32		32
@@ -33,6 +34,10 @@
 
 #define MAX_AES_XTS_TRANSFER_SIZE	0x1000
 
+#define CMDQ_DISABLED		0
+
+#define MAX_RETRY_COUNT		0x100
+
 #ifndef TRUE
 #define TRUE 1
 #endif
@@ -41,11 +46,7 @@
 #define FALSE 0
 #endif
 
-#if defined(CONFIG_PANIC_FOR_SELFTEST_FAIL) || defined(CONFIG_NODE_FOR_SELFTEST_FAIL)
-#define CONFIG_EXYNOS_FMP_FIPS
-#endif
-
-enum fmp_crypto_algo_mode {
+enum fmp_crypto_fips_algo_mode {
 	EXYNOS_FMP_BYPASS_MODE = 0,
 	EXYNOS_FMP_ALGO_MODE_AES_CBC = 1,
 	EXYNOS_FMP_ALGO_MODE_AES_XTS = 2,
@@ -58,148 +59,18 @@ enum fmp_crypto_key_size {
 
 enum fmp_crypto_enc_mode {
 	EXYNOS_FMP_FILE_ENC = 0,
-	EXYNOS_FMP_DISK_ENC = 1,	/* use persistent key */
 	EXYNOS_FMP_ENC_MAX
-};
-
-enum fmp_disk_key_status {
-	KEY_STORED = 0,
-	KEY_SET = 1,
-	KEY_CLEAR = 2,
-	KEY_ERROR = -1,
 };
 
 struct fmp_crypto_info {
 	/* This field's stongly aligned 'crypto_diskcipher->algo' */
-	u32 use_diskc;
 	u8 key[FMP_MAX_KEY_SIZE];
 	u32 key_size;
 	enum fmp_crypto_key_size fmp_key_size;
 	enum fmp_crypto_enc_mode enc_mode;
-	enum fmp_crypto_algo_mode algo_mode;
+	enum fmp_crypto_fips_algo_mode algo_mode;
 	void *ctx;
 };
-
-#if defined(CONFIG_MMC_DW_EXYNOS_FMP) && defined(CONFIG_SCSI_UFS_EXYNOS_FMP)
-#error "FMP doesn't support muti-host"
-#elif defined(CONFIG_MMC_DW_EXYNOS_FMP)
-struct fmp_table_setting {
-	__le32 des0;		/* des0 */
-#define GET_CMDQ_LENGTH(d) \
-	(((d)->des0 & 0xffff0000) >> 16)
-	__le32 des1;		/* des1 */
-	__le32 des2;		/* des2 */
-#define FKL BIT(26)
-#define DKL BIT(27)
-#define SET_KEYLEN(d, v) ((d)->des2 |= (uint32_t)v)
-#define SET_FAS(d, v) \
-			((d)->des2 = ((d)->des2 & 0xcfffffff) | v << 28)
-#define SET_DAS(d, v) \
-			((d)->des2 = ((d)->des2 & 0x3fffffff) | v << 30)
-#define GET_FAS(d)      ((d)->des2 & 0x30000000)
-#define GET_DAS(d)      ((d)->des2 & 0xc0000000)
-#define GET_LENGTH(d) \
-			((d)->des2 & 0x3ffffff)
-	__le32 des3;		/* des3 */
-	/* CMDQ Operation */
-#define FKL_CMDQ BIT(0)
-#define DKL_CMDQ BIT(1)
-#define SET_CMDQ_KEYLEN(d, v) ((d)->des3 |= (uint32_t)v)
-#define SET_CMDQ_FAS(d, v) \
-			((d)->des3 = ((d)->des3 & 0xfffffff3) | v << 2)
-#define SET_CMDQ_DAS(d, v) \
-			((d)->des3 = ((d)->des3 & 0xffffffcf) | v << 4)
-#define GET_CMDQ_FAS(d) ((d)->des3 & 0x0000000c)
-#define GET_CMDQ_DAS(d) ((d)->des3 & 0x00000030)
-	__le32 reserved0;	/* des4 */
-	__le32 reserved1;
-	__le32 reserved2;
-	__le32 reserved3;
-	__le32 file_iv0;	/* des8 */
-	__le32 file_iv1;
-	__le32 file_iv2;
-	__le32 file_iv3;
-	__le32 file_enckey0;	/* des12 */
-	__le32 file_enckey1;
-	__le32 file_enckey2;
-	__le32 file_enckey3;
-	__le32 file_enckey4;
-	__le32 file_enckey5;
-	__le32 file_enckey6;
-	__le32 file_enckey7;
-	__le32 file_twkey0;	/* des20 */
-	__le32 file_twkey1;
-	__le32 file_twkey2;
-	__le32 file_twkey3;
-	__le32 file_twkey4;
-	__le32 file_twkey5;
-	__le32 file_twkey6;
-	__le32 file_twkey7;
-	__le32 disk_iv0;	/* des28 */
-	__le32 disk_iv1;
-	__le32 disk_iv2;
-	__le32 disk_iv3;
-};
-#elif defined(CONFIG_SCSI_UFS_EXYNOS_FMP)
-struct fmp_table_setting {
-	__le32 des0;		/* des0 */
-#define GET_CMDQ_LENGTH(d) \
-	(((d)->des0 & 0xffff0000) >> 16)
-	__le32 des1;		/* des1 */
-	__le32 des2;		/* des2 */
-	__le32 des3;		/* des3 */
-/* Legacy Operation */
-#define FKL BIT(26)
-#define DKL BIT(27)
-#define SET_KEYLEN(d, v) ((d)->des3 |= (uint32_t)v)
-#define SET_FAS(d, v) \
-	((d)->des3 = ((d)->des3 & 0xcfffffff) | v << 28)
-#define SET_DAS(d, v) \
-	((d)->des3 = ((d)->des3 & 0x3fffffff) | v << 30)
-#define GET_FAS(d)	((d)->des3 & 0x30000000)
-#define GET_DAS(d)	((d)->des3 & 0xc0000000)
-#define GET_LENGTH(d) \
-	((d)->des3 & 0x3ffffff)
-/* CMDQ Operation */
-#define FKL_CMDQ BIT(0)
-#define DKL_CMDQ BIT(1)
-#define SET_CMDQ_KEYLEN(d, v) ((d)->des3 |= (uint32_t)v)
-#define SET_CMDQ_FAS(d, v) \
-	((d)->des3 = ((d)->des3 & 0xfffffff3) | v << 2)
-#define SET_CMDQ_DAS(d, v) \
-	((d)->des3 = ((d)->des3 & 0xffffffcf) | v << 4)
-#define GET_CMDQ_FAS(d)	((d)->des3 & 0x0000000c)
-#define GET_CMDQ_DAS(d)	((d)->des3 & 0x00000030)
-	__le32 file_iv0;	/* des4 */
-	__le32 file_iv1;	/* des5 */
-	__le32 file_iv2;	/* des6 */
-	__le32 file_iv3;	/* des7 */
-	__le32 file_enckey0;	/* des8 */
-	__le32 file_enckey1;	/* des9 */
-	__le32 file_enckey2;	/* des10 */
-	__le32 file_enckey3;	/* des11 */
-	__le32 file_enckey4;	/* des12 */
-	__le32 file_enckey5;	/* des13 */
-	__le32 file_enckey6;	/* des14 */
-	__le32 file_enckey7;	/* des15 */
-	__le32 file_twkey0;	/* des16 */
-	__le32 file_twkey1;	/* des17 */
-	__le32 file_twkey2;	/* des18 */
-	__le32 file_twkey3;	/* des19 */
-	__le32 file_twkey4;	/* des20 */
-	__le32 file_twkey5;	/* des21 */
-	__le32 file_twkey6;	/* des22 */
-	__le32 file_twkey7;	/* des23 */
-	__le32 disk_iv0;	/* des24 */
-	__le32 disk_iv1;	/* des25 */
-	__le32 disk_iv2;	/* des26 */
-	__le32 disk_iv3;	/* des27 */
-	__le32 reserved0;	/* des28 */
-	__le32 reserved1;	/* des29 */
-	__le32 reserved2;	/* des30 */
-	__le32 reserved3;	/* des31 */
-};
-#endif
 
 struct fmp_data_setting {
 	struct fmp_crypto_info crypt[EXYNOS_FMP_ENC_MAX];
@@ -207,16 +78,13 @@ struct fmp_data_setting {
 	bool cmdq_enabled;
 };
 
-#ifdef CONFIG_EXYNOS_FMP_FIPS
 struct fips_result {
 	bool overall;
 	bool aes_xts;
-	bool aes_cbc;
 	bool sha256;
 	bool hmac;
 	bool integrity;
 };
-#endif
 
 #define EXYNOS_FMP_ALGO_MODE_MASK (0x3)
 #define EXYNOS_FMP_ALGO_MODE_TEST_OFFSET (0xf)
@@ -232,31 +100,46 @@ struct fmp_test_data {
 	u8 iv[FMP_IV_SIZE_16];
 	/* diskcipher for test */
 	struct fmp_crypto_info ci;
+	u64 DataUnitSeqNumber;
 };
 
 struct exynos_fmp {
 	struct device *dev;
-	enum fmp_disk_key_status status_disk_key;
 	struct fmp_test_data *test_data;
-#ifdef CONFIG_EXYNOS_FMP_FIPS
 	atomic_t fips_start;
 	struct fips_result result;
 	struct miscdevice miscdev;
 	void *test_vops;
 	int fips_run;
+	u8 dun_swap;
 	int fips_fin;
 	struct buffer_head *bh;
-#endif
 };
 
-struct fmp_request {
-	void *table;
-	void *iv;
-	u32 ivsize;
-	u32 prdt_cnt;
-	unsigned long prdt_off;
-	bool cmdq_enabled;
-	bool fips;
+struct fmp_sg_entry {
+	/* The first four fields correspond to those of ufshcd_sg_entry. */
+	__le32 des0;
+	__le32 des1;
+	__le32 des2;
+	/*
+	 * The algorithm and key length are configured in the high bits of des3,
+	 * whose low bits already contain ufshcd_sg_entry::size.
+	 */
+	__le32 des3;
+
+	/* The IV with all bytes reversed */
+	__be32 file_iv[4];
+
+	/*
+	 * The key with all bytes reversed.  For XTS, the two halves of the key
+	 * are given separately and are byte-reversed separately.
+	 */
+	__be32 file_enckey[8];
+	__be32 file_twkey[8];
+
+	/* Not used */
+	__be32 disk_iv[4];
+	__le32 reserved[4];
 };
 
 #define ACCESS_CONTROL_ABORT	0x14
@@ -264,48 +147,32 @@ struct fmp_request {
 #ifndef SMC_CMD_FMP_SECURITY
 /* For FMP/SMU Ctrl */
 #define SMC_CMD_FMP_SECURITY		(0xC2001810)
-#define SMC_CMD_FMP_DISK_KEY_STORED	(0xC2001820)
-#define SMC_CMD_FMP_DISK_KEY_SET	(0xC2001830)
-#define SMC_CMD_FMP_DISK_KEY_CLEAR	(0xC2001840)
 #define SMC_CMD_SMU			(0xC2001850)
 #define SMC_CMD_FMP_SMU_RESUME		(0xC2001860)
 #define SMC_CMD_FMP_SMU_DUMP		(0xC2001870)
 #define SMC_CMD_UFS_LOG			(0xC2001880)
 #endif
 
-enum smu_id {
-	SMU_EMBEDDED = 0,
-	SMU_UFSCARD = 1,
-	SMU_SDCARD = 2,
-	SMU_ID_MAX,
-};
+/* Keyslot Selftest */
+#define FMP_KW_SECUREKEY		0x8000
+#define FMP_KW_SECUREKEY_OFFSET		0x80
 
-enum smu_command {
-	SMU_INIT = 0,
-	SMU_SET = 1,
-	SMU_ABORT = 2,
-};
+#define EXYNOS_FMP_FIPS_KEYSLOT 	0xF
 
-/* fmp functions */
-#if defined(CONFIG_MMC_DW_EXYNOS_FMP) || defined(CONFIG_SCSI_UFS_EXYNOS_FMP)
-int exynos_fmp_fips(struct bio *bio);
-int exynos_fmp_bypass(struct fmp_request *req, struct bio *bio);
-int exynos_fmp_sec_cfg(int fmp_id, int smu_id, bool init);
-int exynos_fmp_smu_abort(int id);
-int exynos_fmp_crypt(struct fmp_crypto_info *ci, void *priv);
-int exynos_fmp_clear(struct fmp_crypto_info *ci, void *priv);
-int exynos_fmp_setkey(struct fmp_crypto_info *ci,
-		u8 *in_key, u32 keylen, bool persistent);
-int exynos_fmp_clearkey(struct fmp_crypto_info *ci);
-bool exynos_fmp_check_test(struct bio *bio, struct fmp_crypto_info *fmp_info);
-#else
-#define exynos_fmp_fips(a) ((void *)0)
-#define exynos_fmp_bypass(a, b) ((void *)0)
-#define exynos_fmp_sec_cfg(a, b, c) (0)
-#define exynos_fmp_smu_abort(a) (0)
-#define exynos_fmp_crypt(a, b) (0)
-#define exynos_fmp_clear(a, b) (0)
-#define exynos_fmp_setkey(a, b, c, d) (0)
-#define exynos_fmp_clearkey(a) (0)
-#endif
+#define AES_256_XTS_KEY_SIZE		64
+#define AES_256_XTS_TWK_OFFSET		8
+
+#define FMP_KW_KEYVALID			0xA00C
+
+#define FMP_EMBEDDED			0
+
+#define DEFAULT_KWMODE			(1 | (1 << 4))
+
+struct exynos_fmp *get_fmp(void);
+int get_fmp_fips_state(void);
+void exynos_fmp_fips_test(struct exynos_fmp *fmp);
+#ifndef CONFIG_KEYS_IN_PRDT
+unsigned long exynos_fmp_set_kw_mode(uint64_t kw_mode);
+unsigned long exynos_fmp_get_kw_mode(dma_addr_t kw_mode_addr);
+#endif /* CONFIG_KEYS_IN_PRDT */
 #endif /* _EXYNOS_FMP_H_ */

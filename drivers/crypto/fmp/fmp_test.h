@@ -22,8 +22,5 @@ struct fmp_test_data *fmp_test_init(struct exynos_fmp *fmp);
 int fmp_cipher_run(struct exynos_fmp *fmp, struct fmp_test_data *fdata,
 		uint8_t *data, uint32_t len, bool bypass, uint32_t write,
 		void *priv, struct fmp_crypto_info *ci);
-int fmp_test_crypt(struct exynos_fmp *fmp, struct fmp_test_data *fdata,
-		uint8_t *src, uint8_t *dst, uint32_t len, uint32_t enc,
-		void *priv, struct fmp_crypto_info *ci);
 void fmp_test_exit(struct fmp_test_data *fdata);
 #endif /* _FMP_TEST_H_ */

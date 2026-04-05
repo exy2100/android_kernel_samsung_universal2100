@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-2.0 */
 /*
  * Created in Samsung Ukraine R&D Center (SRK) under a contract between
  * LLC "Samsung Electronics Ukraine Company" (Kyiv, Ukraine)
@@ -14,8 +15,8 @@ struct chunks_info {
 };
 
 extern struct chunks_info fips140_chunks_info[];// to be embedded
-extern uint32_t fips140_anchor_offset[];		// to be embedded
-extern uint32_t fips140_sec_amount;			// to be embedded
+extern uint32_t fips140_anchor_offset[];	// to be embedded
+extern uint32_t fips140_sec_amount;		// to be embedded
 extern uint32_t fips140_chunk_amount;		// to be embedded
 extern uint8_t fips140_builtime_hmac[];		// to be embedded
 

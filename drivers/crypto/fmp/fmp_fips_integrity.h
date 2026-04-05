@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-2.0 */
 /*
  * Created in Samsung Ukraine R&D Center (SRK) under a contract between
  * LLC "Samsung Electronics Ukraine Company" (Kyiv, Ukraine)
@@ -6,8 +7,6 @@
  */
 #ifndef __FMP_FIPS_INTEGRITY_H__
 #define __FMP_FIPS_INTEGRITY_H__
-
-#include <linux/kernel.h>
 
 int do_fmp_integrity_check(struct exynos_fmp *fmp);
 

@@ -13,4 +13,6 @@ int fmp_cipher_set_key(struct fmp_test_data *fdata,
 		const u8 *key, uint32_t key_len);
 int fmp_cipher_set_iv(struct fmp_test_data *fdata,
 		const u8 *iv, uint32_t iv_len);
+int fmp_cipher_set_DataUnitSeqNumber(struct fmp_test_data *fdata,
+		u64 DataUnitSeqNumber);
 #endif
