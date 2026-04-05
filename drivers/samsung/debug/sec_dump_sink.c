@@ -59,6 +59,38 @@ static phys_addr_t sec_rdx_bootdev_paddr;
 static unsigned int sec_rdx_bootdev_size;
 static DEFINE_MUTEX(rdx_bootdev_mutex);
 
+/* FIXME: this is a copy of 'free_reserved_area' of 'page_alloc.c' */
+static unsigned long __free_reserved_area(void *start, void *end, int poison, const char *s)
+{
+	void *pos;
+	unsigned long pages = 0;
+
+	start = (void *)PAGE_ALIGN((unsigned long)start);
+	end = (void *)((unsigned long)end & PAGE_MASK);
+	for (pos = start; pos < end; pos += PAGE_SIZE, pages++) {
+		struct page *page = virt_to_page(pos);
+		void *direct_map_addr;
+
+		/*
+		 * 'direct_map_addr' might be different from 'pos'
+		 * because some architectures' virt_to_page()
+		 * work with aliases.  Getting the direct map
+		 * address ensures that we get a _writeable_
+		 * alias for the memset().
+		 */
+		direct_map_addr = page_address(page);
+		if ((unsigned int)poison <= 0xFF)
+			memset(direct_map_addr, poison, PAGE_SIZE);
+
+		free_reserved_page(page);
+	}
+
+	if (pages && s)
+		pr_info("Freeing %s memory: %ldK\n", s, pages << (PAGE_SHIFT - 10));
+
+	return pages;
+}
+
 static void sec_free_rdx_bootdev(phys_addr_t paddr, u64 size)
 {
 /* caution : this fuction should be called in rdx_bootdev_mutex protected region. */
@@ -102,7 +134,7 @@ static void sec_free_rdx_bootdev(phys_addr_t paddr, u64 size)
 	for (pfn_idx = pfn_start; pfn_idx < pfn_end; pfn_idx++)
 		free_reserved_page(pfn_to_page(pfn_idx));
 #endif
-	free_reserved_area(phys_to_virt(paddr), phys_to_virt(paddr) + size, -1, "sec_rdx_bootdev");
+	__free_reserved_area(phys_to_virt(paddr), phys_to_virt(paddr) + size, -1, "sec_rdx_bootdev");
 
 	if (sec_rdx_bootdev_paddr == paddr) {
 		sec_rdx_bootdev_paddr = 0;
