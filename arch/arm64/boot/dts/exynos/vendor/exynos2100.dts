@@ -19658,6 +19658,7 @@
 
 	fmp {
 		compatible = "samsung,exynos-fmp";
+		dun-swap = [00];
 		phandle = <0x34f>;
 	};
 
