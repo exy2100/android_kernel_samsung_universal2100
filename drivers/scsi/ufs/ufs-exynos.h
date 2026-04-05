@@ -13,7 +13,6 @@
 #define _UFS_EXYNOS_H_
 
 #include <soc/samsung/exynos_pm_qos.h>
-#include <crypto/fmp.h>
 #include "ufs-vs-mmio.h"
 #include "ufs-vs-regs.h"
 #include "ufs-cal-if.h"
@@ -194,8 +193,6 @@ struct exynos_ufs {
 	struct uic_pwr_mode act_pmd_parm;
 
 	int id;
-	enum smu_id		fmp;
-	enum smu_id		smu;
 
 	spinlock_t dbg_lock;
 	int under_dump;
@@ -228,6 +225,9 @@ struct exynos_ufs {
 	 * some information to user land.
 	 */
 	u32 params[UFS_S_PARAM_NUM];
+
+	/* This variable is for featuring hw functionality */
+	void *fmp;
 
 	/* sysfs */
 	struct kobject sysfs_kobj;
@@ -334,7 +334,32 @@ void exynos_ufs_cmd_log_start(struct ufs_vs_handle *,
 				struct ufs_hba *, struct scsi_cmnd *);
 void exynos_ufs_cmd_log_end(struct ufs_vs_handle *,
 				struct ufs_hba *hba, int tag);
-void exynos_ufs_fmp_config(struct ufs_hba *hba, bool init);
+
+#ifdef CONFIG_SCSI_UFS_EXYNOS_FMP
+void exynos_ufs_fmp_init(struct ufs_hba *hba);
+void exynos_ufs_fmp_resume(struct ufs_hba *hba);
+void exynos_ufs_fmp_dump_info(struct ufs_hba *hba);
+#ifdef CONFIG_KEYS_IN_PRDT
+static inline void exynos_ufs_fmp_set_crypto_cfg(struct ufs_hba *hba)
+{
+}
+#else
+void exynos_ufs_fmp_set_crypto_cfg(struct ufs_hba *hba);
+#endif
+#else  /* !CONFIG_SCSI_UFS_EXYNOS_FMP */
+static inline void exynos_ufs_fmp_init(struct ufs_hba *hba)
+{
+}
+static inline void exynos_ufs_fmp_resume(struct ufs_hba *hba)
+{
+}
+static inline void exynos_ufs_fmp_dump_info(struct ufs_hba *hba)
+{
+}
+static inline void exynos_ufs_fmp_set_crypto_cfg(struct ufs_hba *hba)
+{
+}
+#endif /* ONFIG_SCSI_UFS_EXYNOS_FMP */
 
 bool exynos_ufs_srpmb_get_wlun_uac(void);
 void exynos_ufs_srpmb_set_wlun_uac(bool flag);

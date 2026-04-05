@@ -267,6 +267,9 @@ static void exynos_ufs_dump_debug_info(struct ufs_hba *hba)
 
 	exynos_ufs_dump_info(handle, ufs->dev);
 
+	if (!(hba->saved_uic_err & (1 << 6)))
+		exynos_ufs_fmp_dump_info(hba);
+
 	/* thaw cport logger */
 	__thaw_cport_logger(handle);
 
@@ -1495,8 +1498,9 @@ static int exynos_ufs_init(struct ufs_hba *hba)
 	/* set features, such as caps or quirks */
 	exynos_ufs_set_features(hba);
 
+	exynos_ufs_fmp_init(hba);
+
 	create_ufs_sys_file(ufs->dev, ufs);
-	exynos_ufs_fmp_config(hba, 1);
 	exynos_ufs_srpmb_set_wlun_uac(true);
 
 	return 0;
@@ -1518,12 +1522,14 @@ static void exynos_ufs_init_host(struct ufs_hba *hba)
 	dev_err(ufs->dev, "timeout host sw-reset\n");
 
 	exynos_ufs_dump_info(&ufs->handle, ufs->dev);
+	exynos_ufs_fmp_dump_info(hba);
 
 	goto out;
 
 success:
 	/* configure host */
 	exynos_ufs_config_host(ufs);
+	exynos_ufs_fmp_set_crypto_cfg(hba);
 out:
 	return;
 }
@@ -2018,7 +2024,7 @@ static int __exynos_ufs_resume(struct ufs_hba *hba, enum ufs_pm_op pm_op)
 	if (ret)
 		return ret;
 
-	exynos_ufs_fmp_config(hba, 0);
+	exynos_ufs_fmp_resume(hba);
 	exynos_ufs_srpmb_set_wlun_uac(true);
 
 	return 0;
@@ -2268,7 +2274,6 @@ static int exynos_ufs_populate_dt(struct device *dev, struct exynos_ufs *ufs)
 	struct device_node *np = dev->of_node;
 	struct device_node *child_np;
 	int ret;
-	int id;
 
 	/* Regmap for external regions */
 	ret = exynos_ufs_populate_dt_extern(dev, ufs);
@@ -2300,19 +2305,6 @@ static int exynos_ufs_populate_dt(struct device *dev, struct exynos_ufs *ufs)
 
 	ufs->cal_param.board = 0;
 	of_property_read_u8(np, "brd-for-cal", &ufs->cal_param.board);
-
-	/* get fmp & smu id */
-	ret = of_property_read_u32(np, "fmp-id", &id);
-	if (ret)
-		ufs->fmp = SMU_ID_MAX;
-	else
-		ufs->fmp = id;
-
-	ret = of_property_read_u32(np, "smu-id", &id);
-	if (ret)
-		ufs->smu = SMU_ID_MAX;
-	else
-		ufs->smu = id;
 
 	ufs_perf_populate_dt(ufs->perf, np);
 
