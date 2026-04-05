@@ -459,6 +459,7 @@
   kernel_kobj
   kernel_neon_begin
   kernel_neon_end
+  kernel_sock_shutdown
   kern_mount
   kern_unmount
   __kfifo_alloc
@@ -1739,12 +1740,14 @@
   drm_hdmi_infoframe_set_hdr_metadata
   fd_install
   fget
+  find_pid_ns
   find_vma
   find_vpid
   __get_task_comm
   get_unused_fd_flags
   idr_preload
   idr_replace
+  init_pid_ns
   ion_query_heaps_kernel
   kill_pid
   ksize
@@ -1948,6 +1951,7 @@
   unregister_netdev
 
 # required by sfp_core.ko
+  br_fdb_find_port
   csum_tcpudp_nofold
   dev_get_by_index_rcu
   ip_send_check
@@ -2788,6 +2792,7 @@
 
 # required by wcn_bsp.ko
   gpiod_set_value
+  in_aton
   memdup_user
   pci_disable_device
   pci_disable_msi

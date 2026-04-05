@@ -302,9 +302,6 @@
 #define DWC3_GCTL_DSBLCLKGTNG		BIT(0)
 #define DWC3_GUCTL_USBHSTINAUTORETRYEN	(1 << 14)
 
-/* Global User Control Register */
-#define DWC3_GUCTL_HSTINAUTORETRY	BIT(14)
-
 #define DWC3_GUCTL_REFCLKPER(n)		((n) << 22)
 #define DWC3_GUCTL_NOEXTRDL		(1 << 21)
 #define DWC3_GUCTL_USBHSTINAUTORETRYEN	(1 << 14)
@@ -1701,7 +1698,6 @@ static inline void dwc3_otg_host_init(struct dwc3 *dwc)
 #if 1//!IS_ENABLED(CONFIG_USB_DWC3_HOST)
 int dwc3_gadget_suspend(struct dwc3 *dwc);
 int dwc3_gadget_resume(struct dwc3 *dwc);
-void dwc3_gadget_process_pending_events(struct dwc3 *dwc);
 #else
 static inline int dwc3_gadget_suspend(struct dwc3 *dwc)
 {
@@ -1713,9 +1709,6 @@ static inline int dwc3_gadget_resume(struct dwc3 *dwc)
 	return 0;
 }
 
-static inline void dwc3_gadget_process_pending_events(struct dwc3 *dwc)
-{
-}
 #endif /* !IS_ENABLED(CONFIG_USB_DWC3_HOST) */
 
 #if IS_ENABLED(CONFIG_USB_DWC3_ULPI)
