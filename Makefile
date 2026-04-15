@@ -982,7 +982,9 @@ ifdef CONFIG_CFI_PERMISSIVE
 CC_FLAGS_CFI	+= -fsanitize-recover=cfi \
 		   -fno-sanitize-trap=cfi
 else
+ifndef CONFIG_UBSAN_TRAP
 CC_FLAGS_CFI	+= -ftrap-function=__ubsan_handle_cfi_check_fail_abort
+endif
 endif
 
 # If LTO flags are filtered out, we must also filter out CFI.
