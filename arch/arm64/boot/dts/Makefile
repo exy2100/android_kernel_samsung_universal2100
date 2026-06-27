@@ -33,11 +33,7 @@ dtbo-$(CONFIG_SEC_R9S_PROJECT) += samsung/r9s/r9s_eur_openx_w01_r17.dtbo
 dtbo-$(CONFIG_SEC_R9S_PROJECT) += samsung/r9s/r9s_eur_openx_w01_r00.dtbo
 
 # Platform
-dtbo-y += exynos/vendor/exynos2100-smdk2100.dtbo
-dtbo-y += exynos/vendor/exynos2100-universal2100_rev10.dtbo
-dtbo-y += exynos/vendor/exynos2100-universal2100_rev02.dtbo
 dtb-y += exynos/vendor/exynos2100.dtb
-dtbo-y += exynos/vendor/exynos2100-universal2100_rev11.dtbo
 
 targets += dtbs
 DTB_LIST  := $(dtb-y) $(dtbo-y)
