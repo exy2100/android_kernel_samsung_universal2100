@@ -10154,6 +10154,14 @@ static s32 wl_setup_wiphy(struct wireless_dev *wdev, struct device *sdiofunc_dev
 
 #if defined(WL_SAE) || defined(WL_CLIENT_SAE)
 		wdev->wiphy->features |= NL80211_FEATURE_SAE;
+#if defined(WL_SAE) && (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 3, 0))
+		/* WL_SAE: the dongle does SAE itself (password via BRCM_VENDOR_SCMD_BCM_PSK).
+		 * Since 5.3, nl80211_crypto_settings() rejects NL80211_ATTR_SAE_PASSWORD
+		 * with -EINVAL unless SAE offload is advertised, which made every
+		 * WPA3/SAE connect fail with "MLME connect failed: ret=-22".
+		 */
+		wiphy_ext_feature_set(wdev->wiphy, NL80211_EXT_FEATURE_SAE_OFFLOAD);
+#endif /* WL_SAE && LINUX_VERSION_CODE >= KERNEL_VERSION(5, 3, 0) */
 #endif /* WL_SAE || WL_CLIENT_SAE */
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 13, 0)) && defined(BCMSUP_4WAY_HANDSHAKE)
 	if (FW_SUPPORTED(dhd, idsup)) {
