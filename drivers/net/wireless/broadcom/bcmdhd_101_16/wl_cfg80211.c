@@ -211,9 +211,9 @@ static const struct ieee80211_regdomain brcm_regdom = {
 		 */
 		REG_RULE(2484-10, 2484+10, 20, 6, 20, 0),
 		/* IEEE 802.11a, channel 36..64 */
-		REG_RULE(5150-10, 5350+10, 40, 6, 20, 0),
+		REG_RULE(5150-10, 5350+10, 160, 6, 20, 0),
 		/* IEEE 802.11a, channel 100..165 */
-		REG_RULE(5470-10, 5850+10, 40, 6, 20, 0),
+		REG_RULE(5470-10, 5850+10, 160, 6, 20, 0),
 #ifdef WL_6G_BAND
 		REG_RULE(6025-80, 6985+80, 160, 6, 20, 0),
 		REG_RULE(5935-10, 7115+10, 20, 6, 20, 0),
@@ -9824,6 +9824,52 @@ wl_cfg80211_cleanup_connection(struct net_device *net, bool user_enforced)
 #endif /* WL_NAN */
 }
 
+#if defined(WL_SELF_MANAGED_REGDOM) && (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 0, 0))
+/*
+ * Self-managed wiphys must report their regdomain with regulatory_set_wiphy_regd().
+ * Without it cfg80211 never sends NL80211_CMD_WIPHY_REG_CHANGE with the real
+ * country, so wificond/WifiCountryCode keep reporting the boot-time "99".
+ * cfg80211 copies the regd and frees the previous one (never pass a static regd).
+ * Ported from the Pixel bcmdhd (bcm4389) wl_notify_regd().
+ */
+static void wl_notify_regd(struct wiphy *wiphy, const char *country_code)
+{
+	struct bcm_cfg80211 *cfg = wiphy_priv(wiphy);
+	struct ieee80211_regdomain *regd_copy;
+	int regd_len, i, err;
+
+	regd_len = sizeof(brcm_regdom) + (brcm_regdom.n_reg_rules *
+		sizeof(struct ieee80211_reg_rule));
+	regd_copy = (struct ieee80211_regdomain *)MALLOCZ(cfg->osh, regd_len);
+	if (!regd_copy) {
+		WL_ERR(("failed to alloc regd_copy\n"));
+		return;
+	}
+
+	regd_copy->n_reg_rules = brcm_regdom.n_reg_rules;
+	regd_copy->dfs_region = brcm_regdom.dfs_region;
+	regd_copy->alpha2[0] = brcm_regdom.alpha2[0];
+	regd_copy->alpha2[1] = brcm_regdom.alpha2[1];
+	for (i = 0; i < brcm_regdom.n_reg_rules; i++) {
+		regd_copy->reg_rules[i] = brcm_regdom.reg_rules[i];
+	}
+	if (country_code) {
+		regd_copy->alpha2[0] = country_code[0];
+		regd_copy->alpha2[1] = country_code[1];
+	}
+
+	err = regulatory_set_wiphy_regd(wiphy, regd_copy);
+	if (err) {
+		WL_ERR(("regulatory_set_wiphy_regd(%c%c) failed: %d\n",
+			regd_copy->alpha2[0], regd_copy->alpha2[1], err));
+	} else {
+		WL_INFORM_MEM(("regd notified: %c%c\n",
+			regd_copy->alpha2[0], regd_copy->alpha2[1]));
+	}
+	MFREE(cfg->osh, regd_copy, regd_len);
+}
+#endif /* WL_SELF_MANAGED_REGDOM && KERNEL >= 4.0 */
+
 s32
 wl_cfg80211_set_country_code(struct net_device *net, char *country_code,
 	bool notify, bool user_enforced, int revinfo)
@@ -9874,6 +9920,11 @@ wl_cfg80211_set_country_code(struct net_device *net, char *country_code,
 	if (!IS_REGDOM_SELF_MANAGED(wiphy)) {
 		regulatory_hint(wiphy, country_code);
 	}
+#if defined(WL_SELF_MANAGED_REGDOM) && (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 0, 0))
+	else {
+		wl_notify_regd(wiphy, country_code);
+	}
+#endif /* WL_SELF_MANAGED_REGDOM && KERNEL >= 4.0 */
 
 exit:
 	return OSL_ERROR(ret);
@@ -9913,7 +9964,7 @@ void wl_config_custom_regulatory(struct wiphy *wiphy)
 	/* Use self managed regulatory domain */
 	wiphy->regulatory_flags |= REGULATORY_WIPHY_SELF_MANAGED |
 			REGULATORY_IGNORE_STALE_KICKOFF;
-	wiphy->regd = &brcm_regdom;
+	/* wiphy->regd is set through wl_notify_regd() once the wiphy is registered */
 	WL_DBG(("Self managed regdom\n"));
 	return;
 #else /* WL_SELF_MANAGED_REGDOM && KERNEL >= 4.0 */
@@ -10138,6 +10189,14 @@ static s32 wl_setup_wiphy(struct wireless_dev *wdev, struct device *sdiofunc_dev
 		WL_ERR(("Couldn not register wiphy device (%d)\n", err));
 		wiphy_free(wdev->wiphy);
 	}
+#if defined(WL_SELF_MANAGED_REGDOM) && (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 0, 0))
+	/* Must follow wiphy_register(): the rdev has to be on cfg80211_rdev_list
+	 * for reg_process_self_managed_hints() to pick up the requested regd.
+	 */
+	else if (IS_REGDOM_SELF_MANAGED(wdev->wiphy)) {
+		wl_notify_regd(wdev->wiphy, NULL);
+	}
+#endif /* WL_SELF_MANAGED_REGDOM && KERNEL >= 4.0 */
 
 #if ((LINUX_VERSION_CODE >= KERNEL_VERSION(3, 0, 0)) && (LINUX_VERSION_CODE <= \
 	KERNEL_VERSION(3, 3, 0))) && defined(WL_IFACE_COMB_NUM_CHANNELS)
@@ -10199,10 +10258,7 @@ static void wl_free_wdev(struct bcm_cfg80211 *cfg)
 		WL_DBG(("clear wowlan\n"));
 		wdev->wiphy->wowlan = NULL;
 #endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(3, 11, 0) */
-#if defined(WL_SELF_MANAGED_REGDOM) && (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 0, 0))
-		/* Making regd ptr NULL, to avoid reference/freeing by regulatory unregister */
-		wiphy->regd = NULL;
-#endif /* WL_SELF_MANAGED_REGDOM && KERNEL >= 4.0 */
+		/* wiphy->regd is a cfg80211-owned copy; wiphy_unregister() frees it */
 		wiphy_unregister(wdev->wiphy);
 		wdev->wiphy->dev.parent = NULL;
 		wdev->wiphy = NULL;
@@ -15899,6 +15955,18 @@ static int wl_construct_reginfo(struct bcm_cfg80211 *cfg, s32 bw_cap_2g,
 #ifdef CFG80211_6G_SUPPORT
 	__wl_band_6ghz.n_channels = ARRAYSIZE(__wl_6ghz_channels);
 #endif /* CFG80211_6G_SUPPORT */
+
+#if defined(WL_SELF_MANAGED_REGDOM) && (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 0, 0))
+	/* For self-managed wiphys cfg80211 rebuilds chan->flags from chan->orig_flags
+	 * whenever a new regd is applied (wl_notify_regd). Keep the firmware derived
+	 * DISABLED/RADAR/NO_IR/NO_HT40 flags there so they are not wiped.
+	 */
+	WL_CHANNEL_ARRAY_SYNC_ORIG_FLAGS(__wl_2ghz_channels);
+	WL_CHANNEL_ARRAY_SYNC_ORIG_FLAGS(__wl_5ghz_a_channels);
+#ifdef CFG80211_6G_SUPPORT
+	WL_CHANNEL_ARRAY_SYNC_ORIG_FLAGS(__wl_6ghz_channels);
+#endif /* CFG80211_6G_SUPPORT */
+#endif /* WL_SELF_MANAGED_REGDOM && KERNEL >= 4.0 */
 
 	MFREE(cfg->osh, list, LOCAL_BUF_LEN);
 #undef LOCAL_BUF_LEN
