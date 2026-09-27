@@ -26,8 +26,9 @@
 		ramoops@8f000000 {
 			compatible = "ramoops";
 			reg = <0x00 0x8f000000 0x40000>;
-			record-size = <0x20000>;
-			pmsg-size = <0x20000>;
+			record-size = <0x10000>;
+			console-size = <0x20000>;
+			pmsg-size = <0x10000>;
 		};
 
 		sec_rdx_bootdev {
