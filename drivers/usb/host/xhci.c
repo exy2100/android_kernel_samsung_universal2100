@@ -4126,8 +4126,13 @@ int xhci_store_hw_info(struct usb_hcd *hcd, struct usb_device *udev)
 {
 	struct xhci_hcd *xhci = hcd_to_xhci(hcd);
 	struct xhci_virt_device *virt_dev;
-	struct xhci_erst_entry *entry = &xhci->erst_audio.entries[0];
+	struct xhci_erst_entry *entry;
 
+	/* g_hwinfo is allocated in xhci_run(); never touch it before that. */
+	if (!g_hwinfo)
+		return 0;
+
+	entry = &xhci->erst_audio.entries[0];
 	virt_dev = xhci->devs[udev->slot_id];
 
 	g_hwinfo->dcbaa_dma = xhci->dcbaa->dma;
@@ -4166,6 +4171,9 @@ int xhci_set_deq(struct xhci_hcd *xhci, struct xhci_container_ctx *ctx,
 	/* Use default hwinfo in case
 	 * there are no audio devices occupied
 	 */
+
+	if (!g_hwinfo)
+		return 0;
 
 	if (last_ep < 31)
 		last_ep_ctx = last_ep + 1;
@@ -5561,6 +5569,9 @@ static void xhci_clear_tt_buffer_complete(struct usb_hcd *hcd,
 void xhci_usb_parse_endpoint(struct usb_device *udev, struct usb_endpoint_descriptor *desc, int size)
 {
 	struct usb_endpoint_descriptor *d = desc;
+
+	if (!g_hwinfo)
+		return;
 
 	g_hwinfo->rawdesc_length = size;
 
